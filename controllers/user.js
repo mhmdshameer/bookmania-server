@@ -1,37 +1,45 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken"
-import User from "../models/user.js";
+import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import User from "../models/user.js";
 
 dotenv.config();
 
-export const signup = async (req,res) => {
-    const {username,email,password} = req.body;
-    const secret= process.env.SECRET
-    console.log(req.body);
+export const signup = async (req, res) => {
+  const { username, email, password } = req.body;
+  const secret = process.env.SECRET_STRING;
 
-    try {
-        const existUser = await User.findOne({username});
+  try {
+    const existUser = await User.findOne({ username });
 
-        if(existUser) return res.status(404).json({message:"User already exist."});
+    if (existUser)
+      return (
+        res.json({ message: "User already exist." }),
+        console.log("User already exist", existUser)
+      );
 
-        const hashedPassword = await bcrypt.hash(password,12);
+    const hashedPassword = await bcrypt.hash(password, 12);
+    console.log(hashedPassword);
 
-        const result = await User.create({
-            username,
-            email,
-            password: hashedPassword
-        })
-
-        const token = jwt.sign(
-            {username: result.username, id: result._id},secret,{expiresIn: "2hr"}
-        );
-
-        res.status(200).json({result: result, token});
+    const result = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+    });
+    console.log("User created:", result);
 
 
-    } catch (error) {
-        res.status(500).json({message: "Something went wrong in the sign up"})
-    }
+    const token = jwt.sign(
+      { username: result.username, id: result._id.toString() },
+      secret,
+      { expiresIn: "2hr" }
+    );
+
+    console.log(token);
+
+    res.status(200).json({ result: result, token });
+  } catch (error) {
+    console.log("error in the finals:", error);
+    res.status(500).json({ message: "Something went wrong in the sign up" });
+  }
 };
-
