@@ -14,7 +14,7 @@ export const signup = async (req, res) => {
 
     if (existUser)
       return (
-        res.json({ message: "User already exist." }),
+        res.status(404).json({ message: "User already exist." }),
         console.log("User already exist", existUser)
       );
 
@@ -27,7 +27,6 @@ export const signup = async (req, res) => {
       profile,
       password: hashedPassword,
     });
-    console.log("User created:", result);
 
     const token = jwt.sign(
       { username: result.username, id: result._id.toString() },
@@ -35,6 +34,7 @@ export const signup = async (req, res) => {
       { expiresIn: "2hr" }
     );
 
+    console.log("User created:");
     res.status(200).json({ result: result, token });
   } catch (error) {
     console.log("error in the finals:", error);
@@ -42,42 +42,60 @@ export const signup = async (req, res) => {
   }
 };
 
-export const signin = async (req,res) => {
- const {email, password} = req.body;
- console.log("req",req.body)
+export const signin = async (req, res) => {
+  const { email, password } = req.body;
+  console.log("req", req.body);
 
- try {
-  const existUser = await User.findOne({email});
-
- if(!existUser) return( res.status(404).json({message:"User doesn't exist."}) , console.log("User doesn't exist."))
-
-  const isCorrectPassword = await bcrypt.compare(password,existUser.password);
-
-  if(!isCorrectPassword) return (res.status(404).json({message: "Incorrect password."}), console.log("User doesn't exist."));
-
-  const token = jwt.sign(
-    {email: existUser.email,id: existUser._id},
-    process.env.SECRET_STRING,
-    {expiresIn: "2hr"} 
-  )
-  console.log("token:",token)
-  res.status(200).json({result: existUser,token});
-  console.log("token sent")
- } catch (error) {
-   console.log("the error is:",error)
-  res.status(500).json({message:"Something went wrong in signin"});
- }
- 
-}
-
-export const getUsers = async (req,res) => {
-  console.log("reached")
   try {
-      const users = await User.find()
-      console.log("Got users");
-      res.status(200).json(users)        
+    const existUser = await User.findOne({ email });
+
+    if (!existUser)
+      return (
+        res.status(404).json({ message: "User doesn't exist." }),
+        console.log("User doesn't exist.")
+      );
+
+    const isCorrectPassword = await bcrypt.compare(
+      password,
+      existUser.password
+    );
+
+    if (!isCorrectPassword)
+      return (
+        res.status(404).json({ message: "Incorrect password." }),
+        console.log("User doesn't exist.")
+      );
+
+    const token = jwt.sign(
+      { email: existUser.email, id: existUser._id },
+      process.env.SECRET_STRING,
+      { expiresIn: "2hr" }
+    );
+    res.status(200).json({ result: existUser, token });
+    console.log("token sent");
   } catch (error) {
-      console.log("getPosts:",error)
-      res.status(400).json(error.message);
+    console.log("the error is:", error);
+    res.status(500).json({ message: "Something went wrong in signin" });
+  }
+};
+
+export const getUsers = async (req, res) => {
+  console.log("reached");
+  try {
+    const users = await User.find();
+    console.log("Got users");
+    res.status(200).json(users);
+  } catch (error) {
+    console.log("getPosts:", error);
+    res.status(400).json(error.message);
+  }
+};
+
+export const deleteUser = async(req,res) => {
+  try {
+    const {id} = req.params;
+    await User.findByIdAndDelete(id);
+  } catch (error) {
+    console.log(error)
   }
 }
