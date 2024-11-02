@@ -16,3 +16,15 @@ export const createPost = async (req,res) => {
         res.status(409).json({message: error.message});
     }
 }
+
+export const getPosts = async (req,res) => {
+    console.log("reached")
+    try {
+        const posts = await Post.find()
+        console.log("Get posts");
+        res.status(200).json(posts)        
+    } catch (error) {
+        console.log("getPosts:",error)
+        res.status(400).json(error.message);
+    }
+}
