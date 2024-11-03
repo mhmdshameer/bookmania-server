@@ -1,4 +1,5 @@
 import Post from "../models/post.js";
+import User from "../models/user.js";
 
 export const createPost = async (req, res) => {
   const post = req.body;
@@ -38,8 +39,8 @@ export const getPost = async (req, res) => {
 
 export const updatePost = async (req, res) => {
   try {
-    console.log("reached update")
-    const { id} = req.params;
+    console.log("reached update");
+    const { id } = req.params;
     const post = req.body;
 
     const updatedPost = await Post.findByIdAndUpdate(
@@ -47,19 +48,52 @@ export const updatePost = async (req, res) => {
       { ...post, id },
       { new: true }
     );
-    console.log(updatedPost)
+    console.log(updatedPost);
     res.status(201).json(updatedPost);
   } catch (error) {
     console.log(error);
   }
 };
 
-export const deletePost = async (req,res) => {
-    try {
-      const {id} = req.params;
-      console.log(id)
-      await Post.findByIdAndDelete(id);
-    } catch (error) {
-      console.log("error",error.message)
-    }
+export const deletePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id);
+    await Post.findByIdAndDelete(id);
+  } catch (error) {
+    console.log("error", error.message);
   }
+};
+
+export const takeBook = async (req, res) => {
+  const { userId, bookId } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { book: bookId } },
+      { new: true }
+    );
+
+    const post = await Post.findByIdAndUpdate(
+      bookId,
+      { $inc: { demand: 1 } },
+      { new: true }
+    );
+    res.status(200).json({ message: "Book taken successfully", user, post });
+    console.log("Book has taken")
+  } catch (error) {
+    console.log("error:", error.message);
+  }
+};
+
+export const returnBook = async (req,res) => {
+    const {userId, bookId} = req.params;
+
+    try {
+        await User.findByIdAndUpdate(userId,{$pull:{book: bookId}});
+    } catch (error) {
+        console.log(error.message)
+    }
+
+} 
