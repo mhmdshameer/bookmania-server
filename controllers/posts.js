@@ -28,3 +28,14 @@ export const getPosts = async (req,res) => {
         res.status(400).json(error.message);
     }
 }
+export const getPost = async (req,res) => {
+   const {id} = req.params
+    try {
+        const post = await Post.findById(id)
+        console.log("Get post");
+        res.status(200).json(post)        
+    } catch (error) {
+        console.log("getPosts:",error)
+        res.status(400).json(error.message);
+    }
+}
