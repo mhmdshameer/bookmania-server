@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const postSchema = mongoose.Schema({
     title: String,
     author: String,
-    disc: String,
+    desc: String,
     genre: String,
     pages: String,
     price: String,
