@@ -77,7 +77,8 @@ export const takeBook = async (req, res) => {
 
     const post = await Post.findByIdAndUpdate(
       bookId,
-      { $inc: { demand: 1 } },
+      { $inc: { demand: 1 },
+       $set:{available: false} },
       { new: true }
     );
     res.status(200).json({ message: "Book taken successfully", user, post });
@@ -93,6 +94,7 @@ export const returnBook = async (req,res) => {
 
     try {
         await User.findByIdAndUpdate(userId,{$pull:{book: bookId}});
+        await Post.findByIdAndUpdate(bookId,{$set:{available:true}},{new:true});
         console.log("updated")
         res.status(200).json({ message: "Book taken successfully" });
     } catch (error) {
