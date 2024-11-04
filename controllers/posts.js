@@ -88,10 +88,13 @@ export const takeBook = async (req, res) => {
 };
 
 export const returnBook = async (req,res) => {
-    const {userId, bookId} = req.params;
+    console.log("reached")
+    const {userId, bookId} = req.body;
 
     try {
         await User.findByIdAndUpdate(userId,{$pull:{book: bookId}});
+        console.log("updated")
+        res.status(200).json({ message: "Book taken successfully" });
     } catch (error) {
         console.log(error.message)
     }
