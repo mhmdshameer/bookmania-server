@@ -92,7 +92,7 @@ export const getUsers = async (req, res) => {
 };
 export const getUser = async (req, res) => {
   console.log("reached");
-  const {id}= req.params;
+  const { id } = req.params;
   try {
     const user = await User.findById(id);
     console.log("Got users");
@@ -129,5 +129,58 @@ export const searchedUsers = async (req, res) => {
       console.log(error.message);
       res.status(500).json({ message: "Error searching posts" });
     }
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    console.log("Reached update");
+
+    const { username, email, password, profile } = req.body;
+    const secret = process.env.SECRET_STRING;
+    const { id } = req.params;
+
+    const existUser = await User.findOne({ username });
+    if (existUser && existUser._id.toString() !== id) {
+      console.log("User already exists:", existUser);
+      return res.status(409).json({ message: "Username already exists." });
+    }
+
+    const existUserEmail = await User.findOne({ email });
+    if (existUserEmail && existUserEmail._id.toString() !== id) {
+      console.log("Email already exists:", existUserEmail);
+      return res.status(409).json({ message: "Email already exists." });
+    }
+
+    const updateData = {};
+    if (username) updateData.username = username;
+    if (email) updateData.email = email;
+    if (profile) updateData.profile = profile;
+
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 12);
+    }
+
+    const updatedPost = await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    if (!updatedPost) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const token = jwt.sign(
+      { username: updatedPost.username, id: updatedPost._id.toString() },
+      secret,
+      { expiresIn: "2hr" }
+    );
+
+    console.log("User updated successfully:", updatedPost);
+    res.status(200).json({ result: updatedPost, token });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while updating the user." });
   }
 };
