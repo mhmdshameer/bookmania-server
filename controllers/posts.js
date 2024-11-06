@@ -102,3 +102,29 @@ export const returnBook = async (req,res) => {
     }
 
 } 
+
+export const searchPosts = async (req,res) => {
+  console.log("reached")
+  const {searchText} = req.query;
+  console.log("reached with:",searchText);
+  if(!searchText) {
+    return res.status(200).json([])
+  }
+  try {
+    const regex = new RegExp(searchText,"i");
+
+    const posts = await Post.find({
+      $or:[
+        {title:regex},
+        {author: regex},
+        {genre: regex}
+      ]
+    })
+
+    res.status(201).json(posts)
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "Error searching posts" });
+  }
+};

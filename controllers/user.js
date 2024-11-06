@@ -90,12 +90,44 @@ export const getUsers = async (req, res) => {
     res.status(400).json(error.message);
   }
 };
-
-export const deleteUser = async(req,res) => {
+export const getUser = async (req, res) => {
+  console.log("reached");
+  const {id}= req.params;
   try {
-    const {id} = req.params;
+    const user = await User.findById(id);
+    console.log("Got users");
+    res.status(200).json(user);
+  } catch (error) {
+    console.log("getPosts:", error);
+    res.status(400).json(error.message);
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
     await User.findByIdAndDelete(id);
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
+
+export const searchedUsers = async (req, res) => {
+  const { searchText } = req.query;
+  let users;
+  if (!searchText) {
+    users = User.find();
+  } else {
+    try {
+      const regex = new RegExp(searchText, "i");
+
+      const users = await User.find({
+        $or: [{ username: regex }, { email: regex }],
+      });
+      res.status(201).json(users);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: "Error searching posts" });
+    }
+  }
+};
