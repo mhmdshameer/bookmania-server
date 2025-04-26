@@ -60,6 +60,7 @@ export const deletePost = async (req, res) => {
     const { id } = req.params;
     console.log(id);
     await Post.findByIdAndDelete(id);
+    res.status(201).json({message: "Book deleted"})
   } catch (error) {
     console.log("error", error.message);
   }
